@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComNet - Web-Based Network Simulator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <!-- Top Menu Bar -->
+    <div id="menu-bar">
+        <div class="menu-left">
+            <div class="app-logo">
+                <i class="fas fa-network-wired"></i>
+                <span>ComNet Simulator</span>
+            </div>
+            <div class="menu-item" data-menu="file">
+                <span>File</span>
+                <div class="dropdown-menu">
+                    <div class="dropdown-item" id="btn-new"><i class="fas fa-file"></i> New Topology</div>
+                    <div class="dropdown-item" id="btn-open"><i class="fas fa-folder-open"></i> Open...</div>
+                    <div class="dropdown-item" id="btn-save"><i class="fas fa-save"></i> Save</div>
+                    <div class="dropdown-item" id="btn-export-png"><i class="fas fa-image"></i> Export as PNG</div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item" id="btn-preferences"><i class="fas fa-cog"></i> Preferences</div>
+                </div>
+            </div>
+            <div class="menu-item" data-menu="edit">
+                <span>Edit</span>
+                <div class="dropdown-menu">
+                    <div class="dropdown-item" id="btn-undo"><i class="fas fa-undo"></i> Undo</div>
+                    <div class="dropdown-item" id="btn-redo"><i class="fas fa-redo"></i> Redo</div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item" id="btn-delete-selected"><i class="fas fa-trash"></i> Delete Selected</div>
+                    <div class="dropdown-item" id="btn-select-all"><i class="fas fa-object-group"></i> Select All</div>
+                </div>
+            </div>
+            <div class="menu-item" data-menu="view">
+                <span>View</span>
+                <div class="dropdown-menu">
+                    <div class="dropdown-item" id="btn-zoom-in"><i class="fas fa-search-plus"></i> Zoom In</div>
+                    <div class="dropdown-item" id="btn-zoom-out"><i class="fas fa-search-minus"></i> Zoom Out</div>
+                    <div class="dropdown-item" id="btn-zoom-fit"><i class="fas fa-expand"></i> Fit to Screen</div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item" id="btn-toggle-grid"><i class="fas fa-th"></i> Toggle Grid</div>
+                    <div class="dropdown-item" id="btn-toggle-labels"><i class="fas fa-tag"></i> Toggle Labels</div>
+                    <div class="dropdown-item" id="btn-toggle-ports"><i class="fas fa-ethernet"></i> Toggle Port Labels</div>
+                </div>
+            </div>
+            <div class="menu-item" data-menu="tools">
+                <span>Tools</span>
+                <div class="dropdown-menu">
+                    <div class="dropdown-item" id="btn-ping-tool"><i class="fas fa-satellite-dish"></i> Ping Tool</div>
+                    <div class="dropdown-item" id="btn-traceroute-tool"><i class="fas fa-route"></i> Traceroute</div>
+                    <div class="dropdown-item" id="btn-packet-capture"><i class="fas fa-microscope"></i> Packet Capture</div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item" id="btn-add-note"><i class="fas fa-sticky-note"></i> Add Note</div>
+                </div>
+            </div>
+        </div>
+        <div class="menu-right">
+            <div class="mode-toggle">
+                <button id="btn-realtime" class="mode-btn active" title="Realtime Mode">
+                    <i class="fas fa-clock"></i> Realtime
+                </button>
+                <button id="btn-simulation" class="mode-btn" title="Simulation Mode">
+                    <i class="fas fa-play-circle"></i> Simulation
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div id="toolbar">
+        <button class="tool-btn active" id="tool-select" title="Select (V)">
+            <i class="fas fa-mouse-pointer"></i>
+        </button>
+        <button class="tool-btn" id="tool-move" title="Move Canvas (M)">
+            <i class="fas fa-arrows-alt"></i>
+        </button>
+        <button class="tool-btn" id="tool-connect" title="Connect Devices (C)">
+            <i class="fas fa-link"></i>
+        </button>
+        <button class="tool-btn" id="tool-delete" title="Delete (Del)">
+            <i class="fas fa-eraser"></i>
+        </button>
+        <button class="tool-btn" id="tool-note" title="Add Note (N)">
+            <i class="fas fa-sticky-note"></i>
+        </button>
+        <div class="tool-separator"></div>
+        <button class="tool-btn" id="tool-inspect" title="Inspect Packet (I)">
+            <i class="fas fa-search"></i>
+        </button>
+        <button class="tool-btn" id="tool-pdu" title="Add Simple PDU (P)">
+            <i class="fas fa-envelope"></i>
+        </button>
+    </div>
+
+    <!-- Main Content Area -->
+    <div id="main-content">
+        <!-- Device Palette (Left Sidebar) -->
+        <div id="device-palette">
+            <div class="palette-header">
+                <span>Network Devices</span>
+            </div>
+
+            <div class="palette-category" data-category="end-devices">
+                <div class="category-header">
+                    <i class="fas fa-chevron-down"></i>
+                    <span>End Devices</span>
+                </div>
+                <div class="category-devices">
+                    <div class="device-template" draggable="true" data-device-type="pc">
+                        <div class="device-icon pc-icon"><i class="fas fa-desktop"></i></div>
+                        <span>PC</span>
+                    </div>
+                    <div class="device-template" draggable="true" data-device-type="laptop">
+                        <div class="device-icon laptop-icon"><i class="fas fa-laptop"></i></div>
+                        <span>Laptop</span>
+                    </div>
+                    <div class="device-template" draggable="true" data-device-type="server">
+                        <div class="device-icon server-icon"><i class="fas fa-server"></i></div>
+                        <span>Server</span>
+                    </div>
+                    <div class="device-template" draggable="true" data-device-type="printer">
+                        <div class="device-icon printer-icon"><i class="fas fa-print"></i></div>
+                        <span>Printer</span>
+                    </div>
+                    <div class="device-template" draggable="true" data-device-type="smartphone">
+                        <div class="device-icon phone-icon"><i class="fas fa-mobile-alt"></i></div>
+                        <span>Smartphone</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="palette-category" data-category="network-devices">
+                <div class="category-header">
+                    <i class="fas fa-chevron-down"></i>
+                    <span>Network Devices</span>
+                </div>
+                <div class="category-devices">
+                    <div class="device-template" draggable="true" data-device-type="router">
+                        <div class="device-icon router-icon"><i class="fas fa-project-diagram"></i></div>
+                        <span>Router</span>
+                    </div>
+                    <div class="device-template" draggable="true" data-device-type="switch">
+                        <div class="device-icon switch-icon"><i class="fas fa-exchange-alt"></i></div>
+                        <span>Switch</span>
+                    </div>
+                    <div class="device-template" draggable="true" data-device-type="hub">
+                        <div class="device-icon hub-icon"><i class="fas fa-circle-notch"></i></div>
+                        <span>Hub</span>
+                    </div>
+                    <div class="device-template" draggable="true" data-device-type="bridge">
+                        <div class="device-icon bridge-icon"><i class="fas fa-grip-lines"></i></div>
+                        <span>Bridge</span>
+                    </div>
+                    <div class="device-template" draggable="true" data-device-type="access-point">
+                        <div class="device-icon ap-icon"><i class="fas fa-wifi"></i></div>
+                        <span>Access Point</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="palette-category" data-category="security">
+                <div class="category-header">
+                    <i class="fas fa-chevron-down"></i>
+                    <span>Security Devices</span>
+                </div>
+                <div class="category-devices">
+                    <div class="device-template" draggable="true" data-device-type="firewall">
+                        <div class="device-icon firewall-icon"><i class="fas fa-shield-alt"></i></div>
+                        <span>Firewall</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="palette-category" data-category="connections">
+                <div class="category-header">
+                    <i class="fas fa-chevron-down"></i>
+                    <span>Connections</span>
+                </div>
+                <div class="category-devices">
+                    <div class="connection-template" data-cable-type="ethernet">
+                        <div class="cable-icon ethernet-cable"></div>
+                        <span>Copper Straight</span>
+                    </div>
+                    <div class="connection-template" data-cable-type="crossover">
+                        <div class="cable-icon crossover-cable"></div>
+                        <span>Copper Cross</span>
+                    </div>
+                    <div class="connection-template" data-cable-type="fiber">
+                        <div class="cable-icon fiber-cable"></div>
+                        <span>Fiber</span>
+                    </div>
+                    <div class="connection-template" data-cable-type="serial">
+                        <div class="cable-icon serial-cable"></div>
+                        <span>Serial DCE</span>
+                    </div>
+                    <div class="connection-template" data-cable-type="console">
+                        <div class="cable-icon console-cable"></div>
+                        <span>Console</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Canvas Area -->
+        <div id="canvas-container">
+            <canvas id="network-canvas"></canvas>
+            <!-- Simulation Controls (shown in simulation mode) -->
+            <div id="simulation-controls" class="hidden">
+                <button id="sim-back" title="Previous Step"><i class="fas fa-step-backward"></i></button>
+                <button id="sim-play" title="Play/Pause"><i class="fas fa-play"></i></button>
+                <button id="sim-forward" title="Next Step"><i class="fas fa-step-forward"></i></button>
+                <button id="sim-reset" title="Reset"><i class="fas fa-redo"></i></button>
+                <span id="sim-step-info">Step: 0</span>
+                <label>Speed: <input type="range" id="sim-speed" min="1" max="10" value="5"></label>
+            </div>
+            <!-- Zoom Controls -->
+            <div id="zoom-controls">
+                <button id="zoom-in" title="Zoom In"><i class="fas fa-plus"></i></button>
+                <span id="zoom-level">100%</span>
+                <button id="zoom-out" title="Zoom Out"><i class="fas fa-minus"></i></button>
+            </div>
+            <!-- Coordinates Display -->
+            <div id="coords-display">X: 0, Y: 0</div>
+        </div>
+
+    </div>
+
+    <!-- Properties Panel (Right Sidebar) -->
+    <div id="properties-panel" class="hidden">
+        <div class="panel-header">
+            <span id="panel-title">Properties</span>
+            <button id="close-panel"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="panel-content">
+            <!-- Dynamic content injected here -->
+        </div>
+    </div>
+
+    <!-- CLI Terminal (Bottom Panel) -->
+    <div id="cli-panel" class="hidden">
+        <div class="cli-header">
+            <div class="cli-tabs">
+                <!-- Dynamic tabs added here -->
+            </div>
+            <div class="cli-controls">
+                <button id="cli-minimize" title="Minimize"><i class="fas fa-minus"></i></button>
+                <button id="cli-maximize" title="Maximize"><i class="fas fa-expand"></i></button>
+                <button id="cli-close" title="Close"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div id="cli-terminal">
+            <div id="cli-output"></div>
+            <div id="cli-input-line">
+                <span id="cli-prompt">PC></span>
+                <input type="text" id="cli-input" autofocus spellcheck="false">
+            </div>
+        </div>
+    </div>
+
+    <!-- Packet List Panel (for simulation mode) -->
+    <div id="packet-list-panel" class="hidden">
+        <div class="panel-header">
+            <span>Event List</span>
+            <button id="close-packet-list"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="packet-list-content">
+            <table id="packet-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Time</th>
+                        <th>Source</th>
+                        <th>Destination</th>
+                        <th>Type</th>
+                        <th>Info</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="packet-table-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PDU Detail Modal -->
+    <div id="pdu-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>PDU Details</span>
+                <button class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="pdu-detail-body">
+            </div>
+        </div>
+    </div>
+
+    <!-- Device Config Modal -->
+    <div id="config-modal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <span id="config-modal-title">Device Configuration</span>
+                <button class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="config-tabs">
+                    <button class="config-tab active" data-tab="physical">Physical</button>
+                    <button class="config-tab" data-tab="config">Config</button>
+                    <button class="config-tab" data-tab="cli">CLI</button>
+                    <button class="config-tab" data-tab="desktop">Desktop</button>
+                </div>
+                <div id="config-tab-content">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ping Tool Modal -->
+    <div id="ping-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Simple PDU / Ping</span>
+                <button class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Click a <strong>source device</strong>, then click a <strong>destination device</strong> to send a ping (ICMP Echo).</p>
+                <div id="ping-status"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Area -->
+    <div id="notification-area"></div>
+
+    <!-- Status Bar -->
+    <div id="status-bar">
+        <div class="status-left">
+            <span id="status-tool">Tool: Select</span>
+            <span id="status-devices">Devices: 0</span>
+            <span id="status-connections">Links: 0</span>
+        </div>
+        <div class="status-right">
+            <span id="status-mode">Mode: Realtime</span>
+            <span id="status-time"></span>
+        </div>
+    </div>
+
+    <!-- Hidden file input -->
+    <input type="file" id="file-input" accept=".comnet,.json" style="display:none">
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/devices.js"></script>
+    <script src="js/connection.js"></script>
+    <script src="js/network.js"></script>
+    <script src="js/packet.js"></script>
+    <script src="js/canvas.js"></script>
+    <script src="js/cli.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

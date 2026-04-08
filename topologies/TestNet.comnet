@@ -1,0 +1,30 @@
+{
+  "name": "TestNet",
+  "devices": [
+    {
+      "id": "d1",
+      "type": "router",
+      "model": "2901",
+      "name": "R1",
+      "hostname": "R1",
+      "x": 100,
+      "y": 100,
+      "powered": true,
+      "img": "🔲",
+      "color": "#89b4fa",
+      "interfaces": [],
+      "routingTable": [],
+      "arpTable": [],
+      "macTable": [],
+      "vlans": [],
+      "services": {},
+      "acl": [],
+      "enableSecret": "",
+      "bannerMotd": ""
+    }
+  ],
+  "connections": [],
+  "drawings": [],
+  "id": "6e8b2dcb-9f8f-4196-870a-1348ce889cc9",
+  "savedAt": "2026-04-07T17:44:20.157Z"
+}

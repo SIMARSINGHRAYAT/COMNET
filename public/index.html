@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComNet — Network Simulator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>">
+</head>
+<body>
+    <!-- TOP MENUBAR -->
+    <div class="menubar">
+        <div class="brand"><i class="fas fa-network-wired brand-icon"></i> ComNet</div>
+        <div class="toolbar">
+            <button id="btn-new" class="tool-btn" title="New Topology (Ctrl+N)"><i class="fas fa-file"></i></button>
+            <button id="btn-open" class="tool-btn" title="Open Topology (Ctrl+O)"><i class="fas fa-folder-open"></i></button>
+            <button id="btn-save" class="tool-btn" title="Save Topology (Ctrl+S)"><i class="fas fa-save"></i></button>
+            <div class="toolbar-sep"></div>
+            <button id="btn-undo" class="tool-btn" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+            <button id="btn-redo" class="tool-btn" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+            <div class="toolbar-sep"></div>
+            <button id="btn-zoom-in" class="tool-btn" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+            <button id="btn-zoom-out" class="tool-btn" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+            <button id="btn-fit" class="tool-btn" title="Fit to Content"><i class="fas fa-expand"></i></button>
+            <button id="btn-reset-view" class="tool-btn" title="Reset View"><i class="fas fa-crosshairs"></i></button>
+            <div class="toolbar-sep"></div>
+            <button id="btn-delete" class="tool-btn" title="Delete Selected (Del)"><i class="fas fa-trash"></i></button>
+            <button id="btn-power" class="tool-btn" title="Toggle Power"><i class="fas fa-power-off"></i></button>
+            <button id="btn-grid" class="tool-btn" title="Toggle Grid"><i class="fas fa-th"></i></button>
+        </div>
+        <div class="toolbar-right">
+            <span class="coord-display" id="coord-display">0, 0</span>
+            <button id="btn-theme" class="tool-btn" title="Toggle Theme"><i id="theme-icon" class="fas fa-moon"></i></button>
+        </div>
+    </div>
+
+    <!-- MAIN AREA -->
+    <div class="main-area">
+        <!-- LEFT SIDEBAR — PROPERTIES -->
+        <div class="sidebar sidebar-left" id="sidebar-left">
+            <div class="sidebar-title"><i class="fas fa-info-circle"></i> Properties</div>
+            <div class="sidebar-body" id="properties-content">
+                <p style="color:var(--overlay0);font-size:13px">Click a device to view its properties.</p>
+            </div>
+        </div>
+
+        <!-- CANVAS -->
+        <div class="canvas-container">
+            <canvas id="main-canvas"></canvas>
+        </div>
+
+        <!-- RIGHT SIDEBAR — EVENT LIST -->
+        <div class="sidebar sidebar-right" id="sidebar-right">
+            <div class="sidebar-title"><i class="fas fa-list-alt"></i> Event List
+                <button id="btn-clear-events" class="tool-btn" style="margin-left:auto;width:24px;height:24px;font-size:11px" title="Clear Events"><i class="fas fa-eraser"></i></button>
+            </div>
+            <div class="sidebar-body event-body">
+                <table class="event-table"><thead><tr><th>#</th><th>Time</th><th>Src</th><th>Dst</th><th>Type</th><th>Info</th></tr></thead>
+                <tbody id="event-list-body"></tbody></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM TOOLBAR -->
+    <div class="bottom-toolbar">
+        <div class="model-bar" id="model-bar"></div>
+        <div class="sub-bar" id="subcategory-bar"></div>
+        <div class="cat-bar" id="category-bar"></div>
+    </div>
+
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+        <div class="status-item"><span class="status-dot online"></span> Ready</div>
+        <div class="status-item" id="status-devices">Devices: 0</div>
+        <div class="status-item" id="status-connections">Connections: 0</div>
+        <div class="status-item" id="status-zoom">Zoom: 100%</div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div id="notification-area"></div>
+
+    <!-- SCRIPTS (load order matters) -->
+    <script src="js/utils.js"></script>
+    <script src="js/device-catalog.js"></script>
+    <script src="js/devices.js"></script>
+    <script src="js/connection.js"></script>
+    <script src="js/network.js"></script>
+    <script src="js/cli.js"></script>
+    <script src="js/drawing.js"></script>
+    <script src="js/desktop-apps.js"></script>
+    <script src="js/device-config.js"></script>
+    <script src="js/canvas.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
