@@ -155,8 +155,12 @@ class CanvasRenderer {
         // Drawing objects
         DrawingTools.render(ctx);
 
-        // Animations
+        // Animations (legacy)
         this._renderAnims(ctx);
+
+        // PT-style packet animations
+        PacketAnimator.render(ctx);
+
         ctx.restore();
 
         // Status
@@ -168,17 +172,28 @@ class CanvasRenderer {
     _drawDev(ctx, dev, textColor, subtextColor) {
         const x=dev.x, y=dev.y, w=dev.width, h=dev.height, cx=x+w/2, cy=y+h/2;
         // Shadow
-        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.fillStyle = 'rgba(0,0,0,0.18)';
         ctx.beginPath(); this._roundRect(ctx, x+3, y+3, w, h, 8); ctx.fill();
         // Body
         ctx.fillStyle = dev.powered ? (dev.color||'#89b4fa') : '#585b70';
         ctx.strokeStyle = dev.selected ? '#f9e2af' : 'rgba(128,128,128,0.3)';
         ctx.lineWidth = dev.selected ? 2.5 : 1;
         ctx.beginPath(); this._roundRect(ctx, x, y, w, h, 8); ctx.fill(); ctx.stroke();
-        // Icon
-        ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#1e1e2e';
-        ctx.fillText(dev.img||'❓', cx, cy-2);
+        // Selection glow
+        if (dev.selected) {
+            ctx.shadowColor = '#f9e2af';
+            ctx.shadowBlur = 12;
+            ctx.beginPath(); this._roundRect(ctx, x, y, w, h, 8); ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+        // SVG Icon (fallback to emoji)
+        const iconSize = Math.min(w, h) - 10;
+        const iconDrawn = DeviceIcons.drawOnCanvas(ctx, dev.type, cx - iconSize/2, cy - iconSize/2 - 2, iconSize);
+        if (!iconDrawn) {
+            ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#1e1e2e';
+            ctx.fillText(dev.img||'❓', cx, cy-2);
+        }
         // Label
         ctx.font = '10px "Fira Code", monospace';
         ctx.fillStyle = textColor;
@@ -191,9 +206,18 @@ class CanvasRenderer {
             ctx.fillStyle = '#f38ba8'; ctx.font = '10px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
             ctx.fillText('OFF', cx, cy);
         }
-        // Port count
+        // Port count badge
         const cp = dev.getConnectedPorts().length, tp = dev.interfaces.filter(i=>i.type!=='console'&&i.type!=='vlan').length;
-        if (tp>0) { ctx.font='8px monospace'; ctx.fillStyle=subtextColor; ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillText(`${cp}/${tp}`, x+w-2, y-2); }
+        if (tp>0) {
+            ctx.font='8px monospace'; ctx.fillStyle=subtextColor; ctx.textAlign='right'; ctx.textBaseline='bottom';
+            ctx.fillText(`${cp}/${tp}`, x+w-2, y-2);
+        }
+        // Link status indicator
+        if (dev.powered && cp > 0) {
+            ctx.fillStyle = '#a6e3a1'; ctx.beginPath(); ctx.arc(x+w-4, y+4, 3, 0, Math.PI*2); ctx.fill();
+        } else if (dev.powered) {
+            ctx.fillStyle = '#fab387'; ctx.beginPath(); ctx.arc(x+w-4, y+4, 3, 0, Math.PI*2); ctx.fill();
+        }
     }
 
     _drawConn(ctx, conn, textColor) {
@@ -220,11 +244,20 @@ class CanvasRenderer {
     _roundRect(ctx, x, y, w, h, r) { ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 
     animatePacket(from, to, color='#f9e2af', dur=1000) {
+        // Route through PacketAnimator if available (preferred)
+        if (typeof PacketAnimator !== 'undefined') {
+            PacketAnimator.createPDU(from, to, { color, duration:dur, protocol:'', label:'' });
+            return;
+        }
         this.animations.push({ fx:from.getCenterX(), fy:from.getCenterY(), tx:to.getCenterX(), ty:to.getCenterY(), color, start:Date.now(), dur, progress:0 });
     }
 
     animatePing(from, to, hops, success) {
         const color = success ? '#a6e3a1' : '#f38ba8';
+        if (typeof PacketAnimator !== 'undefined' && hops?.length > 1) {
+            PacketAnimator.createMultiHopPDU(hops, this.app, { color, protocol:'ICMP', hopDelay:400 });
+            return;
+        }
         if (hops?.length > 1) {
             for (let i=0;i<hops.length-1;i++) {
                 const a=this.app.devices.get(hops[i].deviceId), b=this.app.devices.get(hops[i+1].deviceId);
@@ -234,6 +267,7 @@ class CanvasRenderer {
     }
 
     _renderAnims(ctx) {
+        // Legacy fallback animation (only used if PacketAnimator is unavailable)
         const now = Date.now();
         this.animations = this.animations.filter(a => {
             a.progress = Math.min((now-a.start)/a.dur, 1);

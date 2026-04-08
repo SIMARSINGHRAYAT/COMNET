@@ -20,6 +20,7 @@ const ComNetApp = {
     init() {
         this.network = new NetworkEngine(this);
         this.canvas = new CanvasRenderer('main-canvas', this);
+        SimulationEngine.init(this);
         this._buildBottomToolbar();
         this._buildTopToolbar();
         this._bindKeyboard();
@@ -388,9 +389,29 @@ const ComNetApp = {
             if (!destIP) { Utils.notify(`${clicked.name} has no IP address`, 'error'); this.pduSource=null; return; }
 
             if (this.pduMode === 'simple-pdu') {
-                const r = this.network.ping(this.pduSource, destIP);
-                Utils.notify(`PDU: ${this.pduSource.name} → ${clicked.name} ${r.success?'SUCCESS':'FAILED'}`, r.success?'success':'error');
-                this.canvas.animatePing(this.pduSource, clicked, r.hops || r.path, r.success);
+                if (SimulationEngine.isSimMode()) {
+                    // Simulation mode: create step-through scenario
+                    const r = SimulationEngine.createPingScenario(this.pduSource, destIP);
+                    Utils.notify(`Simulation PDU created: ${this.pduSource.name} → ${clicked.name}. Use controls to step.`, r.success?'success':'warning');
+                } else {
+                    // Realtime mode: instant ping with PT-style envelope animation
+                    const r = this.network.ping(this.pduSource, destIP);
+                    Utils.notify(`PDU: ${this.pduSource.name} → ${clicked.name} ${r.success?'SUCCESS':'FAILED'}`, r.success?'success':'error');
+                    if (r.hops && r.hops.length > 1) {
+                        PacketAnimator.createMultiHopPDU(r.hops, this, {
+                            color: r.success ? '#a6e3a1' : '#f38ba8',
+                            protocol: 'ICMP',
+                            hopDelay: 400,
+                        });
+                    } else {
+                        PacketAnimator.createPDU(this.pduSource, clicked, {
+                            color: r.success ? '#a6e3a1' : '#f38ba8',
+                            protocol: 'ICMP',
+                            duration: 800,
+                            label: 'ICMP',
+                        });
+                    }
+                }
             } else if (this.pduMode === 'complex-pdu') {
                 this._showComplexPDU(this.pduSource, clicked, destIP);
             }
@@ -406,18 +427,60 @@ const ComNetApp = {
             <div style="padding:16px">
             <div class="config-field"><label>Source IP</label><input value="${Utils.escapeHtml(srcIP)}" readonly></div>
             <div class="config-field"><label>Dest IP</label><input id="cpdu-dst" value="${Utils.escapeHtml(dstIP)}"></div>
-            <div class="config-field"><label>Protocol</label><select id="cpdu-proto"><option>ICMP</option><option>TCP</option><option>UDP</option></select></div>
-            <div class="config-field"><label>Dest Port</label><input id="cpdu-port" type="number" value="80"></div>
+            <div class="config-field"><label>Scenario</label><select id="cpdu-proto">
+                <option value="ICMP">ICMP Ping</option>
+                <option value="TCP">TCP Connection</option>
+                <option value="DHCP">DHCP Request</option>
+                <option value="DNS">DNS Lookup</option>
+            </select></div>
+            <div class="config-field" id="cpdu-port-field"><label>Dest Port</label><input id="cpdu-port" type="number" value="80"></div>
+            <div class="config-field" id="cpdu-domain-field" style="display:none"><label>Domain Name</label><input id="cpdu-domain" value="example.com"></div>
             <button class="btn-accent" id="cpdu-send">Send PDU</button></div>`;
         document.body.appendChild(d);
+
+        const protoSelect = d.querySelector('#cpdu-proto');
+        const portField = d.querySelector('#cpdu-port-field');
+        const domainField = d.querySelector('#cpdu-domain-field');
+        protoSelect.addEventListener('change', () => {
+            const v = protoSelect.value;
+            portField.style.display = v === 'TCP' ? '' : 'none';
+            domainField.style.display = v === 'DNS' ? '' : 'none';
+        });
+
         d.querySelector('#cpdu-close').addEventListener('click', () => d.remove());
         d.querySelector('#cpdu-send').addEventListener('click', () => {
             const ip = d.querySelector('#cpdu-dst').value;
-            const proto = d.querySelector('#cpdu-proto').value;
-            const r = this.network.ping(src, ip);
-            this.network.logEvent('PDU', src.name, ip, proto, r.success?'Success':r.message, r.success?'success':'failed');
-            Utils.notify(`Complex PDU (${proto}): ${r.success?'Success':'Failed'}`, r.success?'success':'error');
-            if (dst) this.canvas.animatePacket(src, dst, r.success?'#6cb6ff':'#ff6b81', 800);
+            const proto = protoSelect.value;
+            const port = d.querySelector('#cpdu-port').value || '80';
+            const domain = d.querySelector('#cpdu-domain').value || 'example.com';
+
+            if (SimulationEngine.isSimMode()) {
+                // Simulation mode — step-through scenarios
+                let r;
+                switch (proto) {
+                    case 'DHCP':
+                        r = SimulationEngine.createDHCPScenario(src);
+                        Utils.notify(`DHCP scenario created. Use controls to step.`, r.success?'success':'warning');
+                        break;
+                    case 'DNS':
+                        r = SimulationEngine.createDNSScenario(src, domain);
+                        Utils.notify(`DNS scenario for ${domain}. Use controls to step.`, r.success?'success':'warning');
+                        break;
+                    case 'TCP':
+                        r = SimulationEngine.createTCPScenario(src, ip, port);
+                        Utils.notify(`TCP scenario to ${ip}:${port}. Use controls to step.`, r.success?'success':'warning');
+                        break;
+                    default:
+                        r = SimulationEngine.createPingScenario(src, ip);
+                        Utils.notify(`Ping scenario created. Use controls to step.`, r.success?'success':'warning');
+                }
+            } else {
+                // Realtime mode — instant execution
+                const r = this.network.ping(src, ip);
+                this.network.logEvent('PDU', src.name, ip, proto, r.success?'Success':r.message, r.success?'success':'failed');
+                Utils.notify(`Complex PDU (${proto}): ${r.success?'Success':'Failed'}`, r.success?'success':'error');
+                if (dst) PacketAnimator.createPDU(src, dst, { color: r.success?'#6cb6ff':'#ff6b81', duration: 800, protocol: proto, label: proto });
+            }
             d.remove();
         });
     },
@@ -467,8 +530,11 @@ const ComNetApp = {
     addPacketToEventList(evt) {
         const list = document.getElementById('event-list-body'); if (!list) return;
         const row = document.createElement('tr');
-        row.className = evt.status==='success'?'event-success':evt.status==='failed'?'event-failed':'';
-        row.innerHTML = `<td>${evt.id}</td><td>${Utils.escapeHtml(evt.time)}</td><td>${Utils.escapeHtml(evt.source)}</td><td>${Utils.escapeHtml(evt.dest)}</td><td>${Utils.escapeHtml(evt.type)}</td><td>${Utils.escapeHtml(evt.info)}</td>`;
+        // Protocol-based coloring + status
+        const statusClass = evt.status==='success'?'event-success':evt.status==='failed'?'event-failed':'';
+        const protoClass = evt.protocol ? `event-${evt.protocol.toLowerCase()}` : '';
+        row.className = `${statusClass} ${protoClass}`.trim();
+        row.innerHTML = `<td>${evt.id}</td><td>${Utils.escapeHtml(evt.time)}</td><td>${Utils.escapeHtml(evt.source)}</td><td>${Utils.escapeHtml(evt.dest)}</td><td><span class="event-proto-badge">${Utils.escapeHtml(evt.type)}</span></td><td>${Utils.escapeHtml(evt.info)}</td>`;
         list.insertBefore(row, list.firstChild);
         while (list.children.length > 200) list.removeChild(list.lastChild);
     },

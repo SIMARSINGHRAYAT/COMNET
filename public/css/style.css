@@ -421,6 +421,130 @@ canvas { display: block; width: 100%; height: 100%; }
 .notification.success { border-left-color: var(--green); }
 .notification.error { border-left-color: var(--red); }
 .notification.warning { border-left-color: var(--yellow); }
+
+/* ===== SIMULATION MODE TOGGLE ===== */
+.sim-mode-toggle {
+    display: flex; gap: 2px; margin-right: 12px;
+    background: var(--surface0); border-radius: 6px; padding: 2px; border: 1px solid var(--surface1);
+}
+.sim-mode-btn {
+    background: transparent; border: none; color: var(--subtext); font-size: 11px;
+    padding: 3px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px;
+    transition: all 0.2s;
+}
+.sim-mode-btn:hover { color: var(--text); background: var(--surface1); }
+.sim-mode-btn.active { background: var(--accent); color: #0a0a10; font-weight: 600; }
+
+/* ===== SIMULATION CONTROLS BAR ===== */
+.sim-controls {
+    display: flex; align-items: center; gap: 16px;
+    background: linear-gradient(180deg, var(--toolbar-bg) 0%, var(--surface0) 100%);
+    border-top: 1px solid var(--toolbar-border); border-bottom: 1px solid var(--toolbar-border);
+    padding: 6px 16px; min-height: 44px; z-index: 100;
+}
+.sim-transport { display: flex; gap: 4px; align-items: center; }
+.sim-btn {
+    background: var(--btn-bg); border: 1px solid var(--surface1); color: var(--text);
+    width: 32px; height: 32px; border-radius: 6px; cursor: pointer; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+}
+.sim-btn:hover { background: var(--btn-hover); border-color: var(--accent); color: var(--accent); }
+.sim-btn-play { background: var(--accent); color: #0a0a10; border-color: var(--accent); width: 36px; height: 36px; }
+.sim-btn-play:hover { filter: brightness(1.15); }
+
+/* Timeline */
+.sim-timeline-wrap {
+    flex: 1; display: flex; align-items: center; gap: 10px;
+}
+.sim-time {
+    font-family: var(--font-mono); font-size: 11px; color: var(--subtext);
+    min-width: 60px; text-align: center;
+}
+.sim-timeline {
+    flex: 1; height: 20px; background: var(--surface0); border-radius: 4px;
+    position: relative; cursor: pointer; border: 1px solid var(--surface1);
+    overflow: hidden;
+}
+.sim-timeline-track { position: absolute; inset: 0; }
+.sim-timeline-cursor {
+    position: absolute; top: 0; bottom: 0; width: 3px;
+    background: var(--accent); border-radius: 2px; left: 0;
+    box-shadow: 0 0 6px var(--accent-glow);
+    transition: left 0.1s linear;
+}
+.sim-timeline-marker {
+    position: absolute; top: 4px; width: 6px; height: 12px;
+    border-radius: 2px; transform: translateX(-50%);
+}
+.sim-timeline-marker.success { background: var(--green); opacity: 0.8; }
+.sim-timeline-marker.failed { background: var(--red); opacity: 0.8; }
+.sim-timeline-marker.info { background: var(--blue); opacity: 0.6; }
+
+/* Speed Control */
+.sim-speed-control {
+    display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--subtext);
+}
+.sim-speed-control input[type="range"] {
+    width: 80px; height: 4px; accent-color: var(--accent);
+}
+.sim-speed-control span { font-family: var(--font-mono); min-width: 24px; }
+
+/* Event Filters */
+.sim-event-filters { display: flex; gap: 3px; }
+.sim-filter-btn {
+    background: var(--surface0); border: 1px solid var(--surface1); color: var(--subtext);
+    font-size: 10px; padding: 3px 8px; border-radius: 4px; cursor: pointer;
+    transition: all 0.15s;
+}
+.sim-filter-btn:hover { border-color: var(--accent); color: var(--text); }
+.sim-filter-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+/* ===== ENHANCED CONNECTION DRAWING ===== */
+.sim-active .cat-bar { border-top: 2px solid var(--accent); }
+
+/* ===== PT-STYLE PDU INFO POPUP ===== */
+.pdu-info-popup {
+    position: absolute; background: var(--surface0); border: 1px solid var(--surface1);
+    border-radius: var(--radius); padding: 10px 14px; font-size: 11px;
+    font-family: var(--font-mono); color: var(--text); box-shadow: var(--shadow);
+    z-index: 300; min-width: 200px;
+}
+.pdu-info-popup .pdu-header {
+    font-weight: 600; color: var(--accent); margin-bottom: 6px;
+    border-bottom: 1px solid var(--surface1); padding-bottom: 4px;
+}
+.pdu-info-popup .pdu-layer {
+    padding: 3px 0; color: var(--subtext); display: flex; justify-content: space-between;
+}
+.pdu-info-popup .pdu-layer .pdu-val { color: var(--text); }
+
+/* ===== ENHANCED EVENT TABLE — PT-style colors ===== */
+.event-table tr.event-arp { border-left: 3px solid var(--yellow); }
+.event-table tr.event-icmp { border-left: 3px solid var(--blue); }
+.event-table tr.event-dhcp { border-left: 3px solid var(--green); }
+.event-table tr.event-dns { border-left: 3px solid var(--teal); }
+.event-table tr.event-tcp { border-left: 3px solid var(--peach); }
+.event-table tr.event-trace { border-left: 3px solid var(--mauve); }
+.event-table tr.event-link { border-left: 3px solid var(--sapphire); }
+.event-table tr.event-pdu { border-left: 3px solid var(--flamingo); }
+
+.event-proto-badge {
+    display: inline-block; padding: 1px 6px; border-radius: 3px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+    background: var(--surface1); color: var(--text);
+}
+.event-arp .event-proto-badge { background: rgba(241,250,140,0.15); color: var(--yellow); }
+.event-icmp .event-proto-badge { background: rgba(108,182,255,0.15); color: var(--blue); }
+.event-dhcp .event-proto-badge { background: rgba(80,250,123,0.15); color: var(--green); }
+.event-dns .event-proto-badge { background: rgba(139,233,253,0.15); color: var(--teal); }
+.event-tcp .event-proto-badge { background: rgba(255,184,108,0.15); color: var(--peach); }
+.event-trace .event-proto-badge { background: rgba(208,169,245,0.15); color: var(--mauve); }
+.event-link .event-proto-badge { background: rgba(97,175,239,0.15); color: var(--sapphire); }
+.event-pdu .event-proto-badge { background: rgba(242,205,205,0.15); color: var(--flamingo); }
+
+/* ===== DEVICE ICON GLOW ON HOVER (canvas cursor hint) ===== */
+.canvas-container canvas { image-rendering: pixelated; }
 .notification.info { border-left-color: var(--blue); }
 .notification.fade-out { animation: notifyOut 0.3s ease-in forwards; }
 

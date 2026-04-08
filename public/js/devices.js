@@ -347,6 +347,38 @@ class SBC extends NetworkDevice {
     hasDesktop(){ return true; }
 }
 
+class Sniffer extends NetworkDevice {
+    constructor(t,x,y,m){ super('sniffer',x,y,m||'Sniffer-PT'); }
+    _initInterfaces() {
+        this.interfaces.push(new NetworkInterface('GigabitEthernet0','ethernet','1Gbps'));
+    }
+}
+
+class CellTower extends NetworkDevice {
+    constructor(t,x,y,m){ super('celltower',x,y,m||'Cell-Tower'); }
+    _initInterfaces() {
+        this.interfaces.push(new NetworkInterface('GigabitEthernet0','ethernet','1Gbps'));
+        this.interfaces.push(new NetworkInterface('Cellular0','wireless','100Mbps'));
+        this.interfaces.push(new NetworkInterface('Cellular1','wireless','100Mbps'));
+    }
+}
+
+class NetController extends NetworkDevice {
+    constructor(t,x,y,m){ super('netcontroller',x,y,m||'NetController-PT'); }
+    _initInterfaces() {
+        this.interfaces.push(new NetworkInterface('GigabitEthernet0/0','ethernet','1Gbps'));
+        this.interfaces.push(new NetworkInterface('GigabitEthernet0/1','ethernet','1Gbps'));
+    }
+    hasCLI(){ return true; }
+}
+
+class PatchPanel extends NetworkDevice {
+    constructor(t,x,y,m){ super('patchpanel',x,y,m||'PatchPanel-PT'); }
+    _initInterfaces() {
+        for(let i=0;i<24;i++) this.interfaces.push(new NetworkInterface(`Port${i}`,'ethernet','1Gbps'));
+    }
+}
+
 /* ===== DEVICE FACTORY ===== */
 
 const DeviceFactory = {
@@ -358,6 +390,8 @@ const DeviceFactory = {
         pc: PC, laptop: Laptop, server: Server, printer: Printer,
         phone: Phone, tv: TV, tablet: Tablet, smartphone: Smartphone,
         sensor: Sensor, actuator: Actuator, mcu: MCU, sbc: SBC,
+        sniffer: Sniffer, celltower: CellTower, netcontroller: NetController,
+        patchpanel: PatchPanel,
     },
     getClass(type) { return this._map[type] || NetworkDevice; },
     create(type, x, y, model) {

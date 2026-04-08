@@ -19,9 +19,16 @@ const DrawingTools = {
         if (this.tool === 'select') return;
         this.drawing = true;
         if (this.tool === 'text') {
-            const text = prompt('Enter text:');
-            if (text) this.objects.push({ type:'text', x, y, text, color:this._resolveColor(), font:'14px Inter, sans-serif', selected:false });
             this.drawing = false;
+            // Use ComNetApp modal instead of prompt()
+            if (typeof ComNetApp !== 'undefined' && ComNetApp._showModal) {
+                ComNetApp._showModal({ title:'Add Text Annotation', input:'', placeholder:'Enter text...' }).then(text => {
+                    if (text) this.objects.push({ type:'text', x, y, text, color:this._resolveColor(), font:'14px Inter, sans-serif', selected:false });
+                });
+            } else {
+                const text = prompt('Enter text:');
+                if (text) this.objects.push({ type:'text', x, y, text, color:this._resolveColor(), font:'14px Inter, sans-serif', selected:false });
+            }
             return;
         }
         this._current = { type:this.tool, x1:x, y1:y, x2:x, y2:y, color:this._resolveColor(), width:2, points:this.tool==='freehand'?[{x,y}]:null, selected:false };
